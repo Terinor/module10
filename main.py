@@ -1,181 +1,221 @@
 from collections import UserDict
 
-
 class Field:
     def __init__(self, value):
-        self._value = value
+        self.value = value
 
-    @property
-    def value(self):
-        return self._value
-
-    @value.setter
-    def value(self, new_value):
-        self._value = new_value
-
+    def __str__(self):
+        return str(self.value)
 
 class Name(Field):
     pass
 
-
 class Phone(Field):
-    def __init__(self, phone_number):
-        if not self.validate(phone_number):
-            raise ValueError("Invalid phone number format. It should contain exactly 10 digits.")
-        super().__init__(phone_number)
-
-    @staticmethod
-    def validate(phone_number):
-        return phone_number.isdigit() and len(phone_number) == 10
-
+    def __init__(self, value):
+        if len(value) == 10 and value.isdigit():
+            super().__init__(value)
+        else:
+            raise ValueError("Phone number must have 10 digits")
 
 class Record:
-    def __init__(self, name, phone=None):
+    def __init__(self, name):
         self.name = Name(name)
         self.phones = []
-        if phone:
-            self.add_phone(phone)
 
-    def add_phone(self, phone_number):
-        self.phones.append(Phone(phone_number))
+    def add_phone(self, phone):
+        self.phones.append(Phone(phone))
 
-    def remove_phone(self, phone_number):
-        phone = self.find_phone(phone_number)
-        if phone:
-            self.phones.remove(phone)
+    def remove_phone(self, phone):
+        phone_to_remove = None
+        for p in self.phones:
+            if p.value == phone:
+                phone_to_remove = p
+                break
+        if phone_to_remove:
+            self.phones.remove(phone_to_remove)
 
     def edit_phone(self, old_phone, new_phone):
-        phone = self.find_phone(old_phone)
-        if phone:
-            phone.value = new_phone
-
-    def find_phone(self, phone_number):
         for phone in self.phones:
-            if phone.value == phone_number:
-                return phone
-        return None
+            if phone.value == old_phone:
+                phone.value = new_phone
+                return f"Phone {old_phone} was changed to {new_phone}."
+        return f"Phone {old_phone} not found."
 
+    def __str__(self):
+        return f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}"
 
 class AddressBook(UserDict):
-    def add_record(self, name, phone=None):
-        record = Record(name, phone)
-        self.data[name] = record
-
-    def find(self, name):
-        return self.data.get(name, None)
-
-    def delete(self, name):
+    def add_record(self, name, phone):
         if name in self.data:
-            del self.data[name]
+            self.data[name].add_phone(phone)
+        else:
+            new_record = Record(name)
+            new_record.add_phone(phone)
+            self.data[name] = new_record
 
+    def __str__(self):
+        return "\n".join(str(record) for record in self.data.values())
 
-# Тут починається ваш код програми-асистента:
+def hello(data):
+    return "Hello!"
 
-def input_error(func):
-    def inner(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except (KeyError, IndexError):
-            return "Name not found."
-        except ValueError as e:
-            return str(e)
-    return inner
-
-
-@input_error
 def add_contact(data):
     name, phone = data.split()
-    if name not in phonebook:
-        phonebook.add_record(name, phone)
-    else:
-        record = phonebook.find(name)
-        record.add_phone(phone)
-    return "Contact added."
+    book.add_record(name, phone)
+    return f"Added contact {name} with phone {phone}."
 
-
-@input_error
 def change_phone(data):
+    name, old_phone, new_phone = data.split()
+    if name in book:
+        return book[name].edit_phone(old_phone, new_phone)
+    return f"Contact {name} not found."
+
+def get_phone(data):
+    name = data.strip()
+    if name in book:
+        return str(book[name])
+    return f"Contact {name} not found."
+
+def show_all(data):
+    return str(book)
+
+def good_bye(data):
+    return "Goodbye!"
+
+from collections import UserDict
+
+class Field:
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return str(self.value)
+
+class Name(Field):
+    pass
+
+class Phone(Field):
+    def __init__(self, value):
+        if len(value) == 10 and value.isdigit():
+            super().__init__(value)
+        else:
+            raise ValueError("Phone number must have 10 digits")
+
+class Record:
+    def __init__(self, name):
+        self.name = Name(name)
+        self.phones = []
+
+    def add_phone(self, phone):
+        self.phones.append(Phone(phone))
+
+    def remove_phone(self, phone):
+        phone_to_remove = None
+        for p in self.phones:
+            if p.value == phone:
+                phone_to_remove = p
+                break
+        if phone_to_remove:
+            self.phones.remove(phone_to_remove)
+
+    def edit_phone(self, old_phone, new_phone):
+        for phone in self.phones:
+            if phone.value == old_phone:
+                phone.value = new_phone
+                return f"Phone {old_phone} was changed to {new_phone}."
+        return f"Phone {old_phone} not found."
+
+    def __str__(self):
+        return f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}"
+
+class AddressBook(UserDict):
+    def add_record(self, name, phone):
+        if name in self.data:
+            self.data[name].add_phone(phone)
+        else:
+            new_record = Record(name)
+            new_record.add_phone(phone)
+            self.data[name] = new_record
+
+    def __str__(self):
+        return "\n".join(str(record) for record in self.data.values())
+
+def hello(data):
+    return "Hello!"
+
+def add_contact(data):
     name, phone = data.split()
-    record = phonebook.find(name)
-    if not record:
-        raise KeyError
-    if not record.find_phone(phone):
-        record.add_phone(phone)
-    else:
-        raise ValueError("Phone already exists.")
-    return "Phone number added."
+    book.add_record(name, phone)
+    return f"Added contact {name} with phone {phone}."
 
+def change_phone(data):
+    name, old_phone, new_phone = data.split()
+    if name in book:
+        return book[name].edit_phone(old_phone, new_phone)
+    return f"Contact {name} not found."
 
-@input_error
-def get_phone(name):
-    record = phonebook.find(name)
-    if not record:
-        raise KeyError
-    return ', '.join([phone.value for phone in record.phones])
+def get_phone(data):
+    name = data.strip()
+    if name in book:
+        return str(book[name])
+    return f"Contact {name} not found."
 
+def show_all(data):
+    return str(book)
 
-@input_error
-def show_all():
-    return "\n".join([f"{name}: {', '.join([phone.value for phone in record.phones])}" for name, record in phonebook.items()])
-
-
-def hello():
-    return "How can I help you?"
-
-
-def good_bye():
-    return "Good bye!"
-
+def good_bye(data):
+    return "Goodbye!"
 
 def parse_command(full_command):
-    # Якщо команда з двох слів
-    command_name = " ".join(full_command.split()[:2])
+    split_command = full_command.split(' ', 1)
+    primary_command = split_command[0]
+    data = split_command[1] if len(split_command) > 1 else ""
+
     function_to_execute = None
     for func, cmds in COMMANDS.items():
-        if command_name in cmds:
+        if primary_command in cmds:
             function_to_execute = func
             break
 
-    if not function_to_execute:
-        command_name = full_command.split()[0]  # використовуємо лише перше слово
+    if not function_to_execute and len(full_command.split()) > 1:
+        potential_two_word_command = " ".join(full_command.split()[:2])
         for func, cmds in COMMANDS.items():
-            if command_name in cmds:
+            if potential_two_word_command in cmds:
                 function_to_execute = func
                 break
 
-    data = " ".join(full_command.split()[len(command_name.split()):])
-
     return function_to_execute, data
 
+def remove_phone(data):
+    name, phone = data.split()
+    if name in book:
+        book[name].remove_phone(phone)
+        return f"Phone {phone} removed from contact {name}."
+    return f"Contact {name} not found."
+
+
+book = AddressBook()
 
 COMMANDS = {
     hello: ['hello'],
     add_contact: ['add'],
     change_phone: ['change'],
+    remove_phone: ['remove'],
     get_phone: ['phone'],
     show_all: ['show all'],
     good_bye: ['good bye', 'close', 'exit']
 }
 
-phonebook = AddressBook()
-
-
 def main():
-    print("Bot Assistant is here to help you!")
     while True:
-        full_command = input("Enter a command: ").strip().lower()
-        function_to_execute, data = parse_command(full_command)
-
-        if function_to_execute:
-            if function_to_execute in [hello, show_all, good_bye]:
-                response = function_to_execute()
-            else:
-                response = function_to_execute(data)
-            print(response)
-            if function_to_execute == good_bye:
+        full_command = input("Enter your command: ")
+        command_function, data = parse_command(full_command)
+        if command_function:
+            print(command_function(data))
+            if command_function == good_bye:
                 break
         else:
-            print("Unknown command. Try again.")
+            print("Unknown command.")
 
 
 if __name__ == "__main__":
