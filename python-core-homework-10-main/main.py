@@ -22,31 +22,32 @@ class Phone(Field):
         return self.value
 
 class Record:
-    def __init__(self, name: Name):
-        self.name = name
+    def __init__(self, name: str):
+        self.name = Name(name)
         self.phones = []
 
-    def add_phone(self, phone: Phone):
-        self.phones.append(phone)
+    def add_phone(self, phone: str):
+        self.phones.append(Phone(phone))
 
-    def remove_phone(self, phone: Phone):
-        self.phones.remove(phone)
+    def remove_phone(self, phone: str):
+        self.phones.remove(Phone(phone))
 
-    def edit_phone(self, old_phone: Phone, new_phone: Phone):
-        index = self.phones.index(old_phone)
-        self.phones[index] = new_phone
+    def edit_phone(self, old_phone: str, new_phone: str):
+        index = self.phones.index(Phone(old_phone))
+        self.phones[index] = Phone(new_phone)
 
-    def find_phone(self, phone: Phone):
-        if phone in self.phones:
-            return phone
+    def find_phone(self, phone: str):
+        for p in self.phones:
+            if phone == p.value:
+                return p
         return None
 
 class AddressBook(UserDict):
     def add_record(self, record: Record):
-        if isinstance(record.name, Name):
-            self.data[record.name.value] = record
-        else:
-            self.data[record.name] = record
+        # if isinstance(record.name, Name):
+        self.data[record.name.value] = record
+        # else:
+        #     self.data[record.name] = record
 
     def find(self, name: str):
         return self.data.get(name, None)
